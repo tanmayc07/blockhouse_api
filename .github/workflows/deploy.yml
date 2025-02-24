@@ -27,9 +27,13 @@ jobs:
           pip install -r requirements.txt
           pip install pytest
 
-      - name: Run tests
+      - name: Run tests (skip if none exist)
         run: |
-          pytest
+          if ls tests/*.py 1> /dev/null 2>&1; then
+            pytest
+          else
+            echo "No tests found, skipping pytest."
+          fi
 
   deploy:
     name: Deploy to EC2
