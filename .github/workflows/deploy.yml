@@ -1,0 +1,64 @@
+name: Deploy Blockhouse api to EC2
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: |
+          pytest
+
+  deploy:
+    name: Deploy to EC2
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
+      - name: SSH into EC2 and Deploy
+        run: |
+          ssh ec2-user@${{ secrets.EC2_HOST }} << 'EOF'
+            cd /home/ec2-user/blockhouse_api
+
+            # Stop running containers
+            docker stop blockhouse-api || true
+            docker rm blockhouse-api || true
+
+            # Pull latest code
+            git pull origin main
+
+            # Build and run the container
+            docker build -t blockhouse-api .
+            docker run -d --name blockhouse-api -p 8000:8000 blockhouse-api
+          EOF
