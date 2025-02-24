@@ -58,13 +58,13 @@ jobs:
             cd /home/ec2-user/blockhouse_api
 
             # Stop running containers
-            docker stop blockhouse-api || true
-            docker rm blockhouse-api || true
+            sudo docker stop blockhouse-api || true
+            sudo docker rm blockhouse-api || true
 
             # Pull latest code
             git pull origin main
 
             # Build and run the container
-            docker build -t blockhouse-api .
-            docker run -d --name blockhouse-api -p 8000:8000 blockhouse-api
+            sudo docker build -t blockhouse-api .
+            sudo docker run -d --name blockhouse-api -p 8000:8000 blockhouse-api
           EOF
