@@ -66,5 +66,5 @@ jobs:
 
             # Build and run the container
             sudo docker build -t blockhouse-api .
-            sudo docker run -d --name blockhouse-api -p 8000:8000 blockhouse-api
+            sudo docker run -d --name blockhouse-api -p 49160:8000 blockhouse-api
           EOF
